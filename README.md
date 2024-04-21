@@ -1,0 +1,4 @@
+Launch with:
+```
+./pocketbase serve
+```
