@@ -1,6 +1,86 @@
+## v0.22.8
+
+- Fixed '~' auto wildcard wrapping when the param has escaped `%` character ([#4704](https://github.com/pocketbase/pocketbase/discussions/4704)).
+
+- Other minor UI improvements (added `aria-expanded=true/false` to the dropdown triggers, added contrasting border around the default mail template btn style, etc.).
+
+- Updated Go deps and bumped the min Go version in the GitHub release action to Go 1.22.2 since it comes with [some `net/http` security and bug fixes](https://github.com/golang/go/issues?q=milestone%3AGo1.22.2).
+
+
+## v0.22.7
+
+- Replaced the default `s3blob` driver with a trimmed vendored version to reduce the binary size with ~10MB.
+  _It can be further reduced with another ~10MB once we replace entirely the `aws-sdk-go-v2` dependency but I stumbled on some edge cases related to the headers signing and for now is on hold._
+
+- Other minor improvements (updated GitLab OAuth2 provider logo [#4650](https://github.com/pocketbase/pocketbase/pull/4650), normalized error messages, updated npm dependencies, etc.)
+
+
+## v0.22.6
+
+- Admin UI accessibility improvements:
+  - Fixed the dropdowns tab/enter/space keyboard navigation ([#4607](https://github.com/pocketbase/pocketbase/issues/4607)).
+  - Added `role`, `aria-label`, `aria-hidden` attributes to some of the elements in attempt to better assist screen readers.
+
+
+## v0.22.5
+
+- Minor test helpers fixes ([#4600](https://github.com/pocketbase/pocketbase/issues/4600)):
+  - Call the `OnTerminate` hook on `TestApp.Cleanup()`.
+  - Automatically run the DB migrations on initializing the test app with `tests.NewTestApp()`.
+
+- Added more elaborate warning message when restoring a backup explaining how the operation works.
+
+- Skip irregular files (symbolic links, sockets, etc.) when restoring a backup zip from the Admin UI or calling `archive.Extract(src, dst)` because they come with too many edge cases and ambiguities.
+  <details>
+    <summary><b><i>More details</i></b></summary>
+
+    This was initially reported as security issue (_thanks Harvey Spec_) but in the PocketBase context it is not something that can be exploited without an admin intervention and since the general expectations are that the PocketBase admins can do anything and they are the one who manage their server, this should be treated with the same diligence when using `scp`/`rsync`/`rclone`/etc. with untrusted file sources.
+
+    It is not possible (_or at least I'm not aware how to do that easily_) to perform virus/malicious content scanning on the uploaded backup archive files and some caution is always required when using the Admin UI or running shell commands, hence the backup-restore warning text.
+
+    **Or in other words, if someone sends you a file and tell you to upload it to your server (either as backup zip or manually via scp) obviously you shouldn't do that unless you really trust them.**
+
+    PocketBase is like any other regular application that you run on your server and there is no builtin "sandbox" for what the PocketBase process can execute. This is left to the developers to restrict on application or OS level depending on their needs. If you are self-hosting PocketBase you usually don't have to do that, but if you are offering PocketBase as a service and allow strangers to run their own PocketBase instances on your server then you'll need to implement the isolation mechanisms on your own.
+  </details>
+
+
+## v0.22.4
+
+- Removed conflicting styles causing the detailed codeblock log data preview to not visualize properly ([#4505](https://github.com/pocketbase/pocketbase/pull/4505)).
+
+- Minor JSVM improvements:
+  - Added `$filesystem.fileFromUrl(url, optSecTimeout)` helper.
+  - Implemented the `FormData` interface and added support for sending `multipart/form-data` requests with `$http.send()` ([#4544](https://github.com/pocketbase/pocketbase/discussions/4544)).
+
+
+## v0.22.3
+
+- Fixed the z-index of the current admin dropdown on Safari ([#4492](https://github.com/pocketbase/pocketbase/issues/4492)).
+
+- Fixed `OnAfterApiError` debug log `nil` error reference ([#4498](https://github.com/pocketbase/pocketbase/issues/4498)).
+
+- Added the field name as part of the `@request.data.someRelField.*` join to handle the case when a collection has 2 or more relation fields pointing to the same place ([#4500](https://github.com/pocketbase/pocketbase/issues/4500)).
+
+- Updated Go deps and bumped the min Go version in the GitHub release action to Go 1.22.1 since it comes with [some security fixes](https://github.com/golang/go/issues?q=milestone%3AGo1.22.1).
+
+
+## v0.22.2
+
+- Fixed a small regression introduced with v0.22.0 that was causing some missing unknown fields to always return an error instead of applying the specific `nullifyMisingField` resolver option to the query.
+
+
+## v0.22.1
+
+- Fixed Admin UI record and collection panels not reinitializing properly on browser back/forward navigation ([#4462](https://github.com/pocketbase/pocketbase/issues/4462)).
+
+- Initialize `RecordAuthWithOAuth2Event.IsNewRecord` for the `OnRecordBeforeAuthWithOAuth2Request` hook ([#4437](https://github.com/pocketbase/pocketbase/discussions/4437)).
+
+- Added error checks to the autogenerated Go migrations ([#4448](https://github.com/pocketbase/pocketbase/issues/4448)).
+
+
 ## v0.22.0
 
-- Added Planning Center OAuth2 provider (thanks @alxjsn).
+- Added Planning Center OAuth2 provider ([#4393](https://github.com/pocketbase/pocketbase/pull/4393); thanks @alxjsn).
 
 - Admin UI improvements:
   - Autosync collection changes across multiple open browser tabs.
@@ -20,7 +100,7 @@
 
 - Added `jsvm.Config.OnInit` optional config function to allow registering custom Go bindings to the JSVM.
 
-- Added `@request.context` rule field that can be used to apply a different set of constrtaints based on the API rule execution context.
+- Added `@request.context` rule field that can be used to apply a different set of constraints based on the API rule execution context.
   For example, to disallow user creation by an OAuth2 auth, you could set for the users Create API rule `@request.context != "oauth2"`.
   The currently supported `@request.context` values are:
   ```
@@ -31,7 +111,7 @@
   ```
 
 - Adjusted the `cron.Start()` to start the ticker at the `00` second of the cron interval ([#4394](https://github.com/pocketbase/pocketbase/discussions/4394)).
-  _Note that the cron format has only minute granularity and there is still no guarantee that the sheduled job will be always executed at the `00` second._
+  _Note that the cron format has only minute granularity and there is still no guarantee that the scheduled job will be always executed at the `00` second._
 
 - Fixed auto backups cron not reloading properly after app settings change ([#4431](https://github.com/pocketbase/pocketbase/discussions/4431)).
 
